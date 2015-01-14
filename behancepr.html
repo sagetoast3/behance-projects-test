@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+      <head>
+        <title>Input test</title>
+        <script src="http://code.jquery.com/jquery-git.js "></script>
+        <script src="http://d3js.org/d3.v2.js"></script>
+      </head>
+
+<style>
+      body {background-color: #576678;}
+
+      h1 { font-family: 'Futura';
+         
+         color: #EBF2F2;
+          }
+
+      p { font-family: 'Futura';
+           padding: 10px;
+           color: #EBF2F2;
+           opacity: .4;}
+
+      svg { 
+        border-style: solid;
+        border-color: #EBF2F2;}
+</style>
+
+<body>
+      <h1> BEHANCE: PROJECT STATS</h1>
+      <p> A quick way to get an overview of behance user's project stats. </p>
+      <p>
+        user: <input name="user" id="user" type="text">
+      <p>
+</body>
+
+<script>
+
+  //create the canvas
+  
+  var canvas = d3.select("body").append("svg")
+      .attr("width", 970)
+      .attr("height",640)
+      .append("g")
+      .attr("transform", "scale(.85)")
+      .attr("transform", "translate(25, 25)");
+  
+  //write the update function
+  function update(thing) {
+
+
+
+    var url = 
+    "http://www.behance.net/v2/users/" + thing + "/projects?client_id=s7Vj5XhxuwqRYfVAY9z0ZBC3nZi1GUmY";
+
+    $.get(url, {}, function (res, code) {
+        if (code !== "success") {
+            alert(code)
+        } else {
+            dostuffwithProjects(res.projects)
+        }
+    }, "JSONP");
+
+   }
+
+   function dostuffwithProjects(projects) { 
+
+      var data = projects 
+
+      //remove old bars
+      canvas.selectAll("rect")
+        .transition()
+        .duration(100)
+        .attr("opacity",.0)
+        .remove();
+
+      //remove old text
+      canvas.selectAll("text")
+        .transition()
+        .duration(100)
+        .attr("opacity",.0)
+        .remove();
+
+
+      //add new elements
+      canvas.selectAll("view-rect")
+          .data(data)
+          .enter()
+            .append("rect")
+            .attr("width", 0)
+            .attr("height", 15)
+            .attr("y", function(d,i) {return i*50})
+            .attr("fill","#53EDAD")
+            .attr("opacity",.6)
+            .attr("class","view-rect")
+            .transition()
+              .duration(100)
+              .attr("width",function (d) {return d.stats.views/150;});
+
+      canvas.selectAll("appr-rect")
+          .data(data)
+          .enter()
+            .append("rect")
+            .attr("width", 0)
+            .attr("height", 15)
+            .attr("y", function(d,i) {return i*50 + 15})
+            .attr("fill","#FFFFC6")
+            .attr("class","appr-rect")
+            .attr("opacity",.7)
+              .transition()
+                .duration(100)
+                .attr("width", function (d) {return d.stats.appreciations/150;});
+
+      canvas.selectAll("name-label")
+        .data(data)
+        .enter()
+          .append("text")
+          .attr("fill", "white")
+          .attr("opacity", 0)
+          .attr("y", function(d,i) {return i*50 +10;})
+          .attr("x", function (d) {return d.stats.views/150 + 20;})
+          .attr("font-family", 'Futura')
+          .attr("font-size", 13)
+          .attr("class", "name-label")
+          .text (function (d) { return d.name })
+          .transition()
+            .duration(100)
+            .attr("opacity",.6)
+
+      canvas.selectAll("views-label")
+        .data(data)
+        .enter()
+          .append("text")
+          .attr("fill", "#FFD9D7")
+          .attr("y", function(d,i) {return i*50 +25;})
+          .attr("x", function (d) {return d.stats.views/150 + 20;})
+          .attr("font-family", 'Futura')
+          .attr("font-size", 10)
+          .attr("class", "views-label")
+          .attr("opacity",0)
+          .text (function (d) {return "Views: " + d.stats.views;})
+          .transition()
+            .duration(100)
+            .attr("opacity",.6)
+
+      canvas.selectAll("appr-label")
+        .data(data)
+        .enter()
+          .append("text")
+          .attr("fill", "#E9F0F5")
+          .attr("y", function(d,i) {return i*50 +35;})
+          .attr("x", function (d) {return d.stats.views/150 + 20;})
+          .attr("font-family", 'Futura')
+          .attr("opacity", 0)
+          .attr("font-size", 10)
+          .attr("class", "appr-label")
+          .text (function (d) {return "Appreciations: " + d.stats.appreciations;})
+          .transition()
+            .duration(100)
+            .attr("opacity",.6);
+
+    }
+
+  //whenever input is entered call update with new inputs
+  d3.select("#user").on("input", function() {
+      update(this.value);
+  });
+
+  
+
+</script>
+
+</html>
